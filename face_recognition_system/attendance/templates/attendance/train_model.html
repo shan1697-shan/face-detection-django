@@ -1,0 +1,39 @@
+<!-- train_model.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Train Model</title>
+</head>
+<body>
+    <h1>Train Face Recognition Model</h1>
+    <button onclick="startTraining()">Train Model</button>
+    <p id="status"></p>
+
+    <script>
+        function startTraining() {
+            document.getElementById("status").textContent = "Training in progress...";
+
+            fetch("{% url 'train_model' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert(data.message);  // Show "Model training completed."
+                    window.location.href = "/";  // Redirect to home page
+                } else {
+                    alert("An error occurred during model training.");
+                }
+            })
+            .catch(error => {
+                document.getElementById("status").textContent = "Error starting model training.";
+                console.error("Error:", error);
+            });
+        }
+    </script>
+</body>
+</html>

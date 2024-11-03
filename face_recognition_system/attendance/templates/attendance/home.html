@@ -1,0 +1,39 @@
+<!-- home.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Recognition Attendance System</title>
+</head>
+<body>
+    <h1>Face Recognition Attendance System</h1>
+
+    <!-- Navigation Buttons -->
+    <div>
+        <a href="{% url 'collect_data' %}"><button>Collect Data</button></a>
+        <a href="{% url 'train_model' %}"><button>Train Model</button></a>
+        <a href="{% url 'recognize_faces' %}"><button>Recognize Faces</button></a>
+    </div>
+
+    <h2>All Attendance Records</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in attendance_data %}
+                <tr>
+                    <td>{{ record.date }}</td>
+                    <td>{{ record.user.student_id }}</td>
+                    <td>{{ record.user.name }}</td>
+                    <td>{{ record.time }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

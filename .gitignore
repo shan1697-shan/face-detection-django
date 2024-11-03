@@ -1,0 +1,5 @@
+.ipynb_checkpoints/*
+*.jpg
+*.sqlite3
+*.xlsx
+*.pyc

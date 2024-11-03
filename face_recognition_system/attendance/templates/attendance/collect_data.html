@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Collect Data</title>
+    <script>
+        let videoStream;
+        let collectionInterval;
+        let student_id;
+        let name;
+
+        async function startVideo() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                document.getElementById("video").srcObject = videoStream;
+
+                // Automatically stop after 10 seconds
+                setTimeout(stopDataCollection, 10000);
+                collectionInterval = setInterval(captureFrame, 500);  // Capture every 500ms
+            } catch (error) {
+                console.error("Error accessing webcam:", error);
+            }
+        }
+
+        function startDataCollection() {
+            student_id = document.getElementById("student_id").value;
+            name = document.getElementById("name").value;
+            if (!student_id || !name) {
+                alert("Please enter both student ID and name.");
+                return;
+            }
+
+            // Send student_id and name to the backend
+            fetch("{% url 'collect_data' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: new URLSearchParams({ "student_id": student_id, "name": name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+                document.getElementById("status").textContent = "Starting data collection...";
+                startVideo();
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function stopDataCollection() {
+            clearInterval(collectionInterval);
+            videoStream.getTracks().forEach(track => track.stop());
+            alert("Data collection completed!");
+            window.location.href = "/";  // Redirect to home
+        }
+
+        function captureFrame() {
+            const video = document.getElementById("video");
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext("2d");
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL("image/jpeg");
+
+            // Send the captured frame to the server
+            fetch("{% url 'receive_frame' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: new URLSearchParams({
+                    "student_id": student_id,
+                    "name": name,
+                    "image_data": imageData
+                })
+            })
+            .then(response => response.json())
+            .then(data => console.log("Frame saved:", data.filename))
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+    <h1>Collect Face Data</h1>
+    <form id="name-form">
+        <label for="student_id">Enter Student ID:</label>
+        <input type="text" id="student_id" name="student_id" required>
+        <label for="name">Enter Name:</label>
+        <input type="text" id="name" name="name" required>
+        <button type="button" onclick="startDataCollection()">Start Collecting Data</button>
+    </form>
+
+    <video id="video" width="640" height="480" autoplay></video>
+    <p id="status"></p>
+</body>
+</html>

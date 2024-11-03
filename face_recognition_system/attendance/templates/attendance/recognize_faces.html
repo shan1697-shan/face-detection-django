@@ -1,0 +1,41 @@
+<!-- recognize_face.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recognize Faces</title>
+</head>
+<body>
+    <h1>Face Recognition for Attendance</h1>
+    <button onclick="startRecognition()">Start Recognition</button>
+    <p id="status"></p>
+
+    <script>
+        function startRecognition() {
+            document.getElementById("status").innerText = "Starting face recognition...";
+            
+            fetch("{% url 'start_recognition' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert(data.message);  // "Attendance marked."
+                } else if (data.status === "not_found") {
+                    alert(data.message);  // "No record found."
+                } else {
+                    alert("An error occurred during face recognition.");
+                }
+                window.location.href = "/";  // Redirect to home page
+            })
+            .catch(error => {
+                document.getElementById("status").innerText = "Error starting face recognition.";
+                console.error("Error:", error);
+            });
+        }
+    </script>
+</body>
+</html>
